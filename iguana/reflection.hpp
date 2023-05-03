@@ -563,7 +563,10 @@ namespace iguana::detail {
       constexpr static std::string_view name() {                               \
         return std::string_view(#STRUCT_NAME, sizeof(#STRUCT_NAME) - 1);       \
       }                                                                        \
-      constexpr static size_t value() { return size_type::value; }             \
+      constexpr static std::string_view fields() {                             \
+        return fields_##STRUCT_NAME;                                           \
+      }                                                                        \
+constexpr static size_t value() { return size_type::value; }                   \
       constexpr static std::array<frozen::string, size_type::value> arr() {    \
         return arr_##STRUCT_NAME;                                              \
       }                                                                        \
@@ -574,6 +577,8 @@ namespace iguana::detail {
 #define MAKE_META_DATA(STRUCT_NAME, N, ...)                                    \
   constexpr inline std::array<frozen::string, N> arr_##STRUCT_NAME = {         \
       MARCO_EXPAND(MACRO_CONCAT(CON_STR, N)(__VA_ARGS__))};                    \
+  constexpr inline std::string_view fields_##STRUCT_NAME = {                   \
+      MAKE_NAMES(__VA_ARGS__)};                                                \
   MAKE_META_DATA_IMPL(STRUCT_NAME,                                             \
                       MAKE_ARG_LIST(N, &STRUCT_NAME::FIELD, __VA_ARGS__))
 
@@ -703,6 +708,12 @@ template <typename T> constexpr const auto get_name(size_t i) {
 template <typename T> constexpr const std::string_view get_name() {
   using M = decltype(iguana_reflect_members(std::declval<T>()));
   return M::name();
+}
+
+template <typename T>
+constexpr const std::string_view get_fields() {
+    using M = decltype(iguana_reflect_members(std::declval<T>()));
+    return M::fields();
 }
 
 template <typename T>
